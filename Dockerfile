@@ -31,19 +31,23 @@ ENV TINI_KILL_PROCESS_GROUP=1 \
 RUN env
 
 # Entrypoint script to install and run Greengrass
-COPY "greengrass-entrypoint.sh" /
+COPY "greengrassEntrypoint.sh" .
 
 # Install Greengrass v2 dependencies
 RUN yum update -y && yum install -y python37 tar unzip wget sudo procps which && \
     amazon-linux-extras enable python3.8 && yum install -y python3.8 java-11-amazon-corretto-headless && \
     wget $GREENGRASS_RELEASE_URI && \
     rm -rf /var/cache/yum && \
-    chmod +x /greengrass-entrypoint.sh && \
+    chmod +x /greengrassEntrypoint.sh && \
     mkdir -p /opt/greengrassv2 $GGC_ROOT_PATH && unzip $GREENGRASS_ZIP_FILE -d /opt/greengrassv2 && rm $GREENGRASS_ZIP_FILE
 
+#testing
+COPY test.sh .
+RUN chmod +x ./test.sh
+run ./test.sh
 # modify /etc/sudoers
-COPY "modify-sudoers.sh" /
-RUN chmod +x /modify-sudoers.sh
-RUN ./modify-sudoers.sh
-
-ENTRYPOINT ["/greengrass-entrypoint.sh"]
+COPY modifsudo.sh .
+RUN chmod +x ./modifsudo.sh
+RUN ./modifsudo.sh
+# RUN ["/bin/bash", "./modifsudo.sh"]
+ENTRYPOINT ["/greengrassEntrypoint.sh"]
